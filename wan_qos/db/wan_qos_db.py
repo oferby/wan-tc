@@ -383,6 +383,16 @@ class WanTcDb(object):
         if wtc_project:
             return self._project_to_dict(wtc_project)
 
+    def delete_wan_tc_project(self, context, id):
+        filter_db = context.session.query(models.WanProjectTc).filter_by(
+            id=id
+        ).first()
+        if filter_db:
+            with context.session.begin(subtransactions=True):
+                context.session.delete(filter_db)
+        else:
+            LOG.error('could not find project tc to delete: %s', id)
+
     def _project_to_dict(self, wptc_db, fields=None):
 
         project_dict = {

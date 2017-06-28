@@ -273,7 +273,7 @@ class WanQosPlugin(wantcfilter.WanTcFilterPluginBase,
 
     @log_helpers.log_method_call
     def delete_wan_project_tc(self, context, id):
-        pass
+        self.db.delete_wan_tc_project(context, id)
 
     @log_helpers.log_method_call
     def update_wan_project_tc(self, context, id, wan_project_tc):
