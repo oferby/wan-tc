@@ -19,7 +19,6 @@ from neutron.db import agents_db
 from neutron_lib import exceptions
 
 from oslo_config import cfg
-from oslo_log import helpers as log_helpers
 from oslo_log import log as logging
 from oslo_utils import importutils
 
@@ -33,7 +32,6 @@ from wan_qos.extensions import wantcfilter
 from wan_qos.extensions import wantcdevice
 from wan_qos.extensions import wantcclass
 from wan_qos.extensions import wantc
-from wan_qos.extensions import wanprojecttc
 
 LOG = logging.getLogger(__name__)
 
@@ -68,10 +66,9 @@ class PluginRpcCallback(object):
 class WanQosPlugin(wantcfilter.WanTcFilterPluginBase,
                    wantcdevice.WanTcDevicePluginBase,
                    wantcclass.WanTcClassPluginBase,
-                   wantc.WanTcPluginBase,
-                   wanprojecttc.WanProjectTcPluginBase):
+                   wantc.WanTcPluginBase):
     supported_extension_aliases = ['wan-tc-filter', 'wan-tc-device',
-                                   'wan-tc-class', 'wan-tc', 'wan-project-tc']
+                                   'wan-tc-class', 'wan-tc']
 
     def __init__(self):
         self.db = wan_qos_db.WanTcDb()
@@ -98,29 +95,24 @@ class WanQosPlugin(wantcfilter.WanTcFilterPluginBase,
     def _core_plugin(self):
         return directory.get_plugin()
 
-    @log_helpers.log_method_call
     def delete_wan_tc_device(self, context, id):
         self.db.delete_wan_tc_device(context, id)
 
-    @log_helpers.log_method_call
     def get_wan_tc_device(self, context, id, fields=None):
         return self.db.get_device(context, id)
 
-    @log_helpers.log_method_call
     def get_wan_tc_devices(self, context, filters=None, fields=None,
                            sorts=None, limit=None, marker=None,
                            page_reverse=False):
         return self.db.get_all_devices(context, filters, fields, sorts, limit,
                                        marker, page_reverse)
 
-    @log_helpers.log_method_call
     def get_wan_tc_class(self, context, id, fields=None):
         return self.db.get_class_by_id(context, id)
 
     def update_wan_tc_class(self, context, id, wan_tc_class):
         pass
 
-    @log_helpers.log_method_call
     def create_wan_tc_class(self, context, wan_tc_class):
         LOG.debug('got new class request: %s' % wan_tc_class)
         wtc_class_db = self.db.create_wan_tc_class(context,
@@ -129,20 +121,17 @@ class WanQosPlugin(wantcfilter.WanTcFilterPluginBase,
         self.agent_rpc.create_wtc_class(context, wtc_class_db)
         return wtc_class_db
 
-    @log_helpers.log_method_call
     def delete_wan_tc_class(self, context, id):
         LOG.debug('Got request to delete class id: %s' % id)
         class_tree = self.db.get_class_tree(id)
         self.db.delete_wtc_class(context, id)
         self.agent_rpc.delete_wtc_class(context, class_tree)
 
-    @log_helpers.log_method_call
     def get_wan_tc_classs(self, context, filters=None, fields=None, sorts=None,
                           limit=None, marker=None, page_reverse=False):
         return self.db.get_all_classes(context, filters, fields, sorts, limit,
                                        marker, page_reverse)
 
-    @log_helpers.log_method_call
     def delete_wan_tc_filter(self, context, id):
         wtc_filter = self.get_wan_tc_filter(context, id)
         if wtc_filter:
@@ -151,7 +140,6 @@ class WanQosPlugin(wantcfilter.WanTcFilterPluginBase,
             wtc_filter['class'] = wtc_class
             self.agent_rpc.delete_wtc_filter(context, wtc_filter)
 
-    @log_helpers.log_method_call
     def get_wan_tc_filters(self, context, filters=None, fields=None,
                            sorts=None, limit=None, marker=None,
                            page_reverse=False):
@@ -159,7 +147,6 @@ class WanQosPlugin(wantcfilter.WanTcFilterPluginBase,
                                           limit,
                                           marker, page_reverse)
 
-    @log_helpers.log_method_call
     def create_wan_tc_filter(self, context, wan_tc_filter):
         wtc_filter = self.db.create_wan_tc_filter(context,
                                                   wan_tc_filter[
@@ -172,7 +159,6 @@ class WanQosPlugin(wantcfilter.WanTcFilterPluginBase,
     def update_wan_tc_filter(self, context, id, wan_tc_filter):
         pass
 
-    @log_helpers.log_method_call
     def get_wan_tc_filter(self, context, id, fields=None):
         return self.db.get_wan_tc_filter(context, id, fields)
 
@@ -189,7 +175,6 @@ class WanQosPlugin(wantcfilter.WanTcFilterPluginBase,
             tenant_id = context.tenant_id
         return tenant_id
 
-    @log_helpers.log_method_call
     def get_wan_tc(self, context, id, fields=None):
         filter_db = self.get_wan_tc_filter(context, id, fields)
         class_db = self.get_wan_tc_class(context, filter_db['class_id'])
@@ -197,7 +182,6 @@ class WanQosPlugin(wantcfilter.WanTcFilterPluginBase,
         filter_db['max'] = class_db['max']
         return filter_db
 
-    @log_helpers.log_method_call
     def get_wan_tcs(self, context, filters=None, fields=None, sorts=None,
                     limit=None, marker=None, page_reverse=False):
         filters = self.get_wan_tc_filters(context, filters, fields, sorts,
@@ -209,7 +193,6 @@ class WanQosPlugin(wantcfilter.WanTcFilterPluginBase,
 
         return filters
 
-    @log_helpers.log_method_call
     def create_wan_tc(self, context, wan_tc):
         LOG.debug('got WAN_TC: %s' % wan_tc)
         wan_tc_req = wan_tc['wan_tc']
@@ -246,35 +229,12 @@ class WanQosPlugin(wantcfilter.WanTcFilterPluginBase,
         tc_filter_db['max'] = tc_class_db['max']
         return tc_filter_db
 
-    @log_helpers.log_method_call
     def update_wan_tc(self, context, id, wan_tc):
         raise exceptions.BadRequest(msg='Not implemented yet!')
 
-    @log_helpers.log_method_call
     def delete_wan_tc(self, context, id):
         LOG.debug('Deleting TC: %s' % id)
         tc_filter = self.get_wan_tc_filter(context, id)
         class_id = tc_filter['class_id']
         self.delete_wan_tc_filter(context, id)
         self.delete_wan_tc_class(context, class_id)
-
-    @log_helpers.log_method_call
-    def get_wan_project_tc(self, context, id, fields=None):
-        return self.db.get_project_tc_by_id(context, id)
-
-    @log_helpers.log_method_call
-    def create_wan_project_tc(self, context, wan_project_tc):
-        return self.db.create_wan_project_tc(context, wan_project_tc['wan_project_tc'])
-
-    @log_helpers.log_method_call
-    def get_wan_project_tcs(self, context, filters=None, fields=None, sorts=None, limit=None, marker=None,
-                            page_reverse=False):
-        return self.db.get_all_project_tcs(context, filters, fields, sorts, limit, marker, page_reverse)
-
-    @log_helpers.log_method_call
-    def delete_wan_project_tc(self, context, id):
-        pass
-
-    @log_helpers.log_method_call
-    def update_wan_project_tc(self, context, id, wan_project_tc):
-        pass

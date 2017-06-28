@@ -13,19 +13,27 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-WANTC = 'WANTC'
 
-WAN_TC_DEVICE = 'wan_tc_device'
-WAN_TC_DEVICE_PATH = 'wan-tc-devices'
+import time
+import sys
 
-WAN_TC_CLASS = 'wan_tc_class'
-WAN_TC_CLASS_PATH = 'wan-tc-classs'
+from oslo_config import cfg
+from oslo_service import service
 
-WAN_TC_FILTER = 'wan_tc_filter'
-WAN_TC_FILTER_PATH = 'wan-tc-filters'
+from neutron.agent.common import config
+from neutron.common import config as common_config
+from neutron import service as neutron_service
 
-WAN_TC = 'wan_tc'
-WAN_TC_PATH = 'wan-tcs'
+from wan_qos.common import topics
+from wan_qos.services import plugin
 
-WAN_PROJECT_TC = 'wan_project_tc'
-WAN_PROJECT_TC_PATH = 'wan-project-tcs'
+
+def main():
+    common_config.init(sys.argv[1:])
+    config.setup_logging()
+    wanqos_plugin = plugin.WanQosPlugin()
+    while True:
+        time.sleep(3)
+
+if __name__ == '__main__':
+    main()

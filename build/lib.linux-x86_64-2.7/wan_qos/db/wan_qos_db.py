@@ -21,7 +21,7 @@ from oslo_log import log as logging
 
 import sqlalchemy as sa
 
-from neutron_lib import context as ctx
+from neutron import context as ctx
 from neutron.db.models import segment
 from neutron_lib import exceptions
 
@@ -348,48 +348,3 @@ class WanTcDb(object):
                 if column:
                     query = query.filter(column.in_(value))
         return query
-
-    def create_wan_project_tc(self, context, wan_project_tc):
-        wptc_db = models.WanProjectTc(
-            id=uuidutils.generate_uuid(),
-            project_id=wan_project_tc['project'],
-        )
-        if 'min' in wan_project_tc:
-            wptc_db.min = wan_project_tc['min']
-        if 'max' in wan_project_tc:
-            wptc_db.max = wan_project_tc['max']
-
-        with context.session.begin(subtransactions=True):
-            context.session.add(wptc_db)
-        return self._project_to_dict(wptc_db)
-
-    def get_all_project_tcs(self, context, filters=None,
-                            fields=None,
-                            sorts=None, limit=None, marker=None,
-                            page_reverse=False):
-        marker_obj = self._get_marker_obj(
-            context, 'wan_project_tc', limit, marker)
-        all_project_tcs = self._get_collection(context, models.WanProjectTc,
-                                               self._project_to_dict,
-                                               filters=filters, fields=fields,
-                                               sorts=sorts, limit=limit,
-                                               marker_obj=marker_obj,
-                                               page_reverse=page_reverse)
-        return all_project_tcs
-
-    def get_project_tc_by_id(self, context, id):
-        wtc_project = context.session.query(models.WanProjectTc).filter_by(
-            id=id).first()
-        if wtc_project:
-            return self._project_to_dict(wtc_project)
-
-    def _project_to_dict(self, wptc_db, fields=None):
-
-        project_dict = {
-            'id': wptc_db.id,
-            'min': wptc_db.min,
-            'max': wptc_db.max,
-            'project': wptc_db.project_id
-        }
-
-        return project_dict

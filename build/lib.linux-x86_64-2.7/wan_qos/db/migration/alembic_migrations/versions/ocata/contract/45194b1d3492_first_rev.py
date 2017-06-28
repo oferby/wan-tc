@@ -82,11 +82,3 @@ def upgrade():
         sa.Column('uptime', sa.DateTime()),
         sa.Column('heartbeat_timestamp', sa.DateTime())
     )
-
-    op.create_table('wan_project_tc',
-                    sa.Column('id', sa.String(length=36), nullable=False),
-                    sa.Column('project_id', sa.String(length=36)),
-                    sa.Column('min', sa.String(length=15)),
-                    sa.Column('max', sa.String(length=15)),
-                    sa.PrimaryKeyConstraint('id')
-                    )

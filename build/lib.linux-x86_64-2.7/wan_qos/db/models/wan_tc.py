@@ -58,10 +58,3 @@ class WanTcFilter(model_base.BASEV2,
                                       ondelete='CASCADE'))
     protocol = sa.Column(sa.String(15))
     match = sa.Column(sa.String(15))
-
-
-class WanProjectTc(model_base.BASEV2,
-                   model_base.HasId, model_base.HasProject):
-    __tablename__ = 'wan_project_tc'
-    min = sa.Column(sa.String(15))
-    max = sa.Column(sa.String(15))

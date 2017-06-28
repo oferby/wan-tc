@@ -26,6 +26,3 @@ WAN_TC_FILTER_PATH = 'wan-tc-filters'
 
 WAN_TC = 'wan_tc'
 WAN_TC_PATH = 'wan-tcs'
-
-WAN_PROJECT_TC = 'wan_project_tc'
-WAN_PROJECT_TC_PATH = 'wan-project-tcs'
