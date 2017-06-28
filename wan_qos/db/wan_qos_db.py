@@ -19,11 +19,10 @@ from oslo_utils import uuidutils
 from oslo_utils import timeutils
 from oslo_log import log as logging
 
-import sqlalchemy as sa
-
 from neutron_lib import context as ctx
-from neutron.db.models import segment
 from neutron_lib import exceptions
+
+from neutron.db import models_v2
 
 from wan_qos.db.models import wan_tc as models
 from wan_qos.common import constants
@@ -403,3 +402,12 @@ class WanTcDb(object):
         }
 
         return project_dict
+
+    def get_project_networks(self, context, project_id):
+        networks_db = context.session.query(models_v2.Network.id).filter_by(
+            project_id=project_id
+        ).all()
+        nets = []
+        for net in networks_db:
+            nets.append(net[0])
+        return nets

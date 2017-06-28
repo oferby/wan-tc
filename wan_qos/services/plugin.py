@@ -264,7 +264,26 @@ class WanQosPlugin(wantcfilter.WanTcFilterPluginBase,
 
     @log_helpers.log_method_call
     def create_wan_project_tc(self, context, wan_project_tc):
-        return self.db.create_wan_project_tc(context, wan_project_tc['wan_project_tc'])
+        wptc = wan_project_tc['wan_project_tc']
+        result = self.db.create_wan_project_tc(context, wptc)
+        project_networks = self.db.get_project_networks(context, result['project'])
+        LOG.debug('networks: %s', project_networks)
+
+        wantc = {
+            'wan_tc': {
+
+            }
+        }
+
+        if 'min' in wptc:
+            wantc['wan_tc']['min'] = wptc['min']
+        if 'max' in wptc:
+            wantc['wan_tc']['max'] = wptc['max']
+        for net in project_networks:
+            wantc['wan_tc']['network'] = net
+            self.create_wan_tc(context, wantc)
+
+        return result
 
     @log_helpers.log_method_call
     def get_wan_project_tcs(self, context, filters=None, fields=None, sorts=None, limit=None, marker=None,
@@ -273,7 +292,11 @@ class WanQosPlugin(wantcfilter.WanTcFilterPluginBase,
 
     @log_helpers.log_method_call
     def delete_wan_project_tc(self, context, id):
+        wptc = self.get_wan_project_tc(context, id)
         self.db.delete_wan_tc_project(context, id)
+        project_networks = self.db.get_project_networks(context, wptc['project'])
+        for net in project_networks:
+            self.delete_wan_tc(context, net)
 
     @log_helpers.log_method_call
     def update_wan_project_tc(self, context, id, wan_project_tc):
